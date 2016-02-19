@@ -178,6 +178,7 @@ M.authenticate = function(credentials_loc, options)
 	local auth_header = headers['authorization']
 	local content_type = headers['content_type']
 	local attributes = parse_authorization_header(auth_header)
+	local port = options.port or ngx.var.server_port
 
 	if not attributes or
 		not attributes.id or
@@ -190,7 +191,7 @@ M.authenticate = function(credentials_loc, options)
 	ngx.ctx.artifacts = {
 		method = ngx.var.request_method,
 		host = ngx.var.host,
-		port = ngx.var.server_port,
+		port = port,
 		resource = ngx.var.request_uri,
 		ts = attributes.ts,
 		nonce = attributes.nonce,
