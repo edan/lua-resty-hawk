@@ -147,6 +147,38 @@ local function parse_authorization_header(auth_header, allowable_keys)
 	return attributes
 end
 
+M.request_header = function(credentials, artifacts, options)
+
+	local request_artifacts = {
+		method = artifacts.method,
+		host = artifacts.host,
+		port = artifacts.port,
+		resource = artifacts.resource,
+		ts = artifacts.ts,
+		nonce = artifacts.nonce,
+		app = artifacts.app,
+		dlg = artifacts.dlg,
+	}
+	if options.hash then
+		request_artifacts.hash = options.hash
+	end
+	if options.ext then
+		request_artifacts.ext = options.ext
+	end
+	if not request_artifacts.hash and options.payload then
+		request_artifacts.hash = calculate_payload_hash(options.payload, credentials.algorithm, options.content_type)
+	end
+	local mac = calculate_mac('header', credentials, request_artifacts)
+	local header = 'Hawk id="'.. credentials.id .. '", ts="' .. request_artifacts.ts .. '", nonce="' .. request_artifacts.nonce .. '", mac="' .. mac .. '"'
+	if request_artifacts.hash then
+		header = header .. ', hash="' .. request_artifacts.hash .. '"'
+	end
+	if request_artifacts.ext then
+		header = header .. ', ext="' .. escape_header(request_artifacts.ext) .. '"'
+	end
+	return header
+end
+
 M.header = function(credentials, artifacts, options)
 
 	local response_artifacts = {
